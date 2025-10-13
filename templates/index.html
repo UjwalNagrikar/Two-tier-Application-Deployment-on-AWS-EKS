@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask App new🚀</title>
+    <title>Flask App Enhanced 🚀</title>
     <style>
         /* Import Google Font */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
         /* Reset Default Styles */
         * {
@@ -17,131 +17,268 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        /* Background with subtle gradient */
+        /* Enhanced Background with Animated Gradient */
         body {
-            background: linear-gradient(to bottom, #0f0f0f, #1c1c1c);
+            background: linear-gradient(-45deg, #0f0f0f, #1c1c1c, #2d1b69, #0f0f0f);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
         }
 
-        /* Glassmorphic Container */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Enhanced Glassmorphic Container with Pulse Animation */
         .container {
             max-width: 600px;
             width: 100%;
-            padding: 30px;
+            padding: 40px;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+            animation: fadeInUp 1s ease forwards 0.5s;
         }
 
         .container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(255, 255, 255, 0.1);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(255, 152, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
-        /* Elegant Heading */
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Animated Elegant Heading with Glow */
         h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #ff9800, #e65100);
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff9800, #e65100, #ff6d00);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
+            background-clip: text;
+            margin-bottom: 25px;
+            text-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+            animation: glowPulse 2s ease-in-out infinite alternate;
         }
 
-        /* Messages Box */
+        @keyframes glowPulse {
+            from { text-shadow: 0 0 20px rgba(255, 152, 0, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 152, 0, 0.8), 0 0 40px rgba(255, 152, 0, 0.4); }
+        }
+
+        /* Enhanced Messages Box with Scroll Animation */
         .messages {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            max-height: 200px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            max-height: 250px;
             overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: linear-gradient(#ff9800, #e65100);
+            border-radius: 10px;
         }
 
         .messages p {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            margin-bottom: 5px;
-            font-size: 0.95rem;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            opacity: 0;
+            transform: translateX(-30px);
+            animation: slideInLeft 0.6s ease forwards;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #ff9800;
+            transition: all 0.3s ease;
         }
 
-        /* Animated Input Fields */
+        .messages p:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 16px rgba(255, 152, 0, 0.3);
+        }
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Animated Input Fields with Bounce */
         input[type="text"] {
             width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
             color: #fff;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 16px;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             text-align: center;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: scale(0.9);
+            animation: bounceIn 0.8s ease forwards 1s;
         }
 
         input[type="text"]:focus {
             border-color: #ff9800;
-            box-shadow: 0 0 12px rgba(255, 152, 0, 0.5);
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             outline: none;
+            transform: scale(1.02);
         }
 
-        /* Glowing Submit Button */
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.3s ease;
+        }
+
+        input[type="text"]:focus::placeholder {
+            color: rgba(255, 152, 0, 0.8);
+        }
+
+        /* Enhanced Glowing Submit Button with Ripple Effect */
         input[type="submit"] {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             background: linear-gradient(135deg, #ff9800, #e65100);
             color: #fff;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 16px;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideInUp 0.8s ease forwards 1.2s;
         }
 
         input[type="submit"]:hover {
-            box-shadow: 0 0 20px rgba(255, 152, 0, 0.6);
-            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 152, 0, 0.4);
+            transform: translateY(-5px) scale(1.05);
+            background: linear-gradient(135deg, #ff6d00, #ff9800);
+        }
+
+        input[type="submit"]:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Ripple Effect on Button Click */
+        input[type="submit"]::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        input[type="submit"]:active::before {
+            width: 300px;
+            height: 300px;
         }
 
         /* Mobile Responsive */
         @media (max-width: 600px) {
             .container {
-                padding: 20px;
+                padding: 25px;
+                margin: 10px;
             }
 
             h1 {
-                font-size: 1.6rem;
+                font-size: 1.8rem;
             }
 
             input[type="text"], input[type="submit"] {
                 font-size: 14px;
+                padding: 12px;
             }
+
+            .messages {
+                max-height: 200px;
+                padding: 15px;
+            }
+        }
+
+        /* Loading Spinner for Messages (Optional, if needed) */
+        .loading {
+            display: none;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ff9800;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Flask + MySQL App [2 tier] - Junoon 🔥</h1>
+        <h1>Flask + MySQL App [2 Tier] 🚀</h1>
 
         <div class="messages">
             {% for message in messages %}
                 <p>{{ message[0] }}</p>
             {% endfor %}
+            <div class="loading" id="loadingSpinner"></div>
         </div>
 
         <form id="messageForm">
             <input type="text" name="new_message" placeholder="Type your message..." required>
-            <input type="submit" value="Send">
+            <input type="submit" value="Send Message ✨">
         </form>
     </div>
 
@@ -149,33 +286,80 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Animate existing messages on load
+            $(".messages p").each(function(index) {
+                $(this).css({
+                    'animation-delay': (index * 0.2) + 's'
+                });
+            });
+
             $("#messageForm").on("submit", function(event) {
                 event.preventDefault(); // Prevent page reload
 
                 let messageInput = $("input[name='new_message']");
                 let message = messageInput.val().trim();
+                let submitBtn = $("input[type='submit']");
+                let loadingSpinner = $("#loadingSpinner");
 
                 if (message === "") {
-                    alert("Message cannot be empty!");
+                    // Shake animation for empty input
+                    messageInput.addClass('shake');
+                    setTimeout(() => messageInput.removeClass('shake'), 500);
                     return;
                 }
+
+                // Show loading
+                loadingSpinner.show();
+                submitBtn.prop('disabled', true).val('Sending...');
 
                 $.ajax({
                     url: "/submit",
                     type: "POST",
                     data: { new_message: message },
                     success: function(response) {
+                        loadingSpinner.hide();
+                        submitBtn.prop('disabled', false).val('Send Message ✨');
+
                         if (response && response.message) {
-                            $(".messages").append("<p>" + response.message + "</p>");
+                            // Animate new message append
+                            let newMsg = $("<p>" + response.message + "</p>");
+                            newMsg.hide().appendTo(".messages").show(0, function() {
+                                // Trigger slide-in animation
+                                newMsg.css({
+                                    'opacity': 0,
+                                    'transform': 'translateX(-30px)'
+                                }).animate({
+                                    opacity: 1,
+                                    left: 0
+                                }, 600, 'easeOutBounce');
+                            });
                             messageInput.val("");
                         } else {
                             console.error("Unexpected response format:", response);
+                            // Error shake on button
+                            submitBtn.addClass('shake');
+                            setTimeout(() => submitBtn.removeClass('shake'), 500);
                         }
                     },
                     error: function(xhr, status, error) {
+                        loadingSpinner.hide();
+                        submitBtn.prop('disabled', false).val('Send Message ✨');
                         console.error("AJAX Error:", status, error);
+                        // Error notification
+                        alert("Oops! Something went wrong. Please try again.");
                     }
                 });
+            });
+
+            // Add shake class for error feedback
+            $.fn.extend({
+                shake: function() {
+                    this.animate({ marginLeft: -10 }, 100)
+                        .animate({ marginLeft: 10 }, 100)
+                        .animate({ marginLeft: -10 }, 100)
+                        .animate({ marginLeft: 10 }, 100)
+                        .animate({ marginLeft: 0 }, 100);
+                }
             });
         });
     </script>
