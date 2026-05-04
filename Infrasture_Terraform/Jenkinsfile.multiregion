@@ -1,0 +1,240 @@
+/*
+ * DevSecOps CI/CD Pipeline – Multi-Region Edition
+ * Ujwal Nagrikar | UNiverse Capital
+ *
+ * Stages:
+ *  1. SonarQube Analysis
+ *  2. OWASP Dependency Check
+ *  3. Trivy FS Scan
+ *  4. Sonar Quality Gate
+ *  5. Build Docker Image
+ *  6. Push to Artifact Registry (GCR)
+ *  7. Terraform Init + Validate
+ *  8. Terraform Plan
+ *  9. Terraform Apply (multi-region deploy)
+ * 10. Smoke Test (global LB health)
+ */
+
+pipeline {
+    agent any
+
+    environment {
+        // ─── GCP / Registry ───────────────────────────────────────────────
+        GCP_PROJECT        = 'your-gcp-project-id'
+        GCP_REGION         = 'us-central1'
+        REGISTRY           = "us-central1-docker.pkg.dev/${GCP_PROJECT}/devsecops-repo"
+        IMAGE_NAME         = 'myproject'
+        IMAGE_TAG          = "${BUILD_NUMBER}"
+        FULL_IMAGE         = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        LATEST_IMAGE       = "${REGISTRY}/${IMAGE_NAME}:latest"
+
+        // ─── SonarQube ────────────────────────────────────────────────────
+        SONAR_HOST_URL     = 'http://34.100.168.24:9000'
+        SONAR_PROJECT_KEY  = 'myproject'
+
+        // ─── Terraform ────────────────────────────────────────────────────
+        TF_DIR             = 'terraform-multi-region'
+        TF_VAR_project_id  = "${GCP_PROJECT}"
+        TF_VAR_docker_image = "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        TF_VAR_environment = 'prod'
+    }
+
+    stages {
+
+        // ── Stage 1: Static Code Analysis ─────────────────────────────────
+        stage('SonarQube Analysis') {
+            steps {
+                script { scannerHome = tool 'SonarScanner' }
+                withSonarQubeEnv('SonarServer') {
+                    sh """
+                    ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    """
+                }
+            }
+        }
+
+        // ── Stage 2: Dependency Vulnerability Scan ────────────────────────
+        stage('OWASP Dependency Check') {
+            steps {
+                dependencyCheck additionalArguments: '--scan . --format HTML --format JSON',
+                                odcInstallation: 'dc'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.html'
+            }
+        }
+
+        // ── Stage 3: Filesystem Vulnerability Scan ────────────────────────
+        stage('Trivy Scan') {
+            steps {
+                sh """
+                trivy fs \
+                    --exit-code 0 \
+                    --severity HIGH,CRITICAL \
+                    --format table \
+                    --output trivy-report.txt \
+                    .
+                echo '=== TRIVY REPORT ==='
+                cat trivy-report.txt
+                """
+            }
+        }
+
+        // ── Stage 4: Quality Gate ─────────────────────────────────────────
+        stage('Sonar Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
+                }
+            }
+        }
+
+        // ── Stage 5: Build Docker Image ───────────────────────────────────
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                docker build \
+                    --label git-commit=${GIT_COMMIT} \
+                    --label build-number=${BUILD_NUMBER} \
+                    --label build-date=\$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+                    -t ${FULL_IMAGE} \
+                    -t ${LATEST_IMAGE} \
+                    .
+                """
+
+                // Scan the built image for vulnerabilities
+                sh """
+                trivy image \
+                    --exit-code 0 \
+                    --severity HIGH,CRITICAL \
+                    --format table \
+                    --output trivy-image-report.txt \
+                    ${FULL_IMAGE}
+                echo '=== IMAGE SCAN REPORT ==='
+                cat trivy-image-report.txt
+                """
+            }
+        }
+
+        // ── Stage 6: Push to Artifact Registry ───────────────────────────
+        stage('Push to Artifact Registry') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GCP_KEY_FILE')]) {
+                    sh """
+                    # Authenticate Docker to Artifact Registry
+                    gcloud auth activate-service-account --key-file=${GCP_KEY_FILE}
+                    gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+                    # Push versioned and latest tags
+                    docker push ${FULL_IMAGE}
+                    docker push ${LATEST_IMAGE}
+
+                    echo "✅ Pushed ${FULL_IMAGE}"
+                    """
+                }
+            }
+        }
+
+        // ── Stage 7: Terraform Init & Validate ───────────────────────────
+        stage('Terraform Init & Validate') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    dir(TF_DIR) {
+                        sh '''
+                        terraform init -input=false -reconfigure
+                        terraform validate
+                        terraform fmt -check -recursive
+                        '''
+                    }
+                }
+            }
+        }
+
+        // ── Stage 8: Terraform Plan ───────────────────────────────────────
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    dir(TF_DIR) {
+                        sh """
+                        terraform plan \
+                            -var='docker_image=${FULL_IMAGE}' \
+                            -out=tfplan \
+                            -input=false
+                        """
+                    }
+                }
+            }
+        }
+
+        // ── Stage 9: Terraform Apply (Multi-Region Deploy) ────────────────
+        stage('Terraform Apply') {
+            when {
+                // Only auto-deploy from main branch; other branches require approval
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
+            }
+            steps {
+                withCredentials([file(credentialsId: 'gcp-sa-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    dir(TF_DIR) {
+                        sh 'terraform apply -input=false tfplan'
+                    }
+                }
+            }
+        }
+
+        // ── Stage 10: Smoke Test ──────────────────────────────────────────
+        stage('Smoke Test') {
+            steps {
+                script {
+                    def lbIp = sh(
+                        script: "cd ${TF_DIR} && terraform output -raw load_balancer_ip",
+                        returnStdout: true
+                    ).trim()
+
+                    // Wait for LB to propagate (typically 30–90 s after apply)
+                    sleep(time: 60, unit: 'SECONDS')
+
+                    def response = sh(
+                        script: "curl -s -o /dev/null -w '%{http_code}' http://${lbIp}/",
+                        returnStdout: true
+                    ).trim()
+
+                    if (response != '200' && response != '301' && response != '302') {
+                        error("Smoke test FAILED – LB returned HTTP ${response}")
+                    }
+                    echo "✅ Smoke test passed – HTTP ${response} from ${lbIp}"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Archive all reports
+            archiveArtifacts artifacts: 'trivy-report.txt,trivy-image-report.txt,**/dependency-check-report.*',
+                             allowEmptyArchive: true
+
+            // Clean up local Docker images to free disk space
+            sh """
+            docker rmi ${FULL_IMAGE} ${LATEST_IMAGE} 2>/dev/null || true
+            docker image prune -f
+            """
+        }
+
+        success {
+            echo """
+             Multi-Region Deployment Successful!
+            Build:     #${BUILD_NUMBER}
+            Image:     ${FULL_IMAGE}
+            Regions:   us-central1, europe-west1, asia-southeast1
+            """
+        }
+
+        failure {
+            echo " Pipeline failed at stage: ${currentBuild.result}"
+    }
+}

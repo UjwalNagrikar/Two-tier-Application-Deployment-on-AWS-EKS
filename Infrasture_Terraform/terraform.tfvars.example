@@ -1,0 +1,26 @@
+project_id     = "your-gcp-project-id"
+primary_region = "us-central1"
+app_name       = "devsecops"
+environment    = "prod"
+
+docker_image   = "us-central1-docker.pkg.dev/your-gcp-project-id/devsecops-repo/myproject:latest"
+
+app_port          = 80
+health_check_path = "/"
+
+machine_type = "e2-medium"
+min_replicas = 1
+max_replicas = 5
+
+domains = [
+  "devsecops.yourdomain.com",
+]
+
+ssh_allowed_cidrs = ["YOUR_IP/32"]
+
+common_labels = {
+  project    = "devsecops-platform"
+  managed_by = "terraform"
+  owner      = "ujwal-nagrikar"
+  team       = "devops"
+}
